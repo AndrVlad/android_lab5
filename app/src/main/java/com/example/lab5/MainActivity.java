@@ -1,17 +1,24 @@
 package com.example.lab5;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -27,8 +34,6 @@ import javax.net.ssl.HttpsURLConnection;
 
 public class MainActivity extends AppCompatActivity {
 
-
-    static String url = "https://ntv.ifmo.ru/file/journal/2.pdf";
     InputStream is = null;
 
     @Override
@@ -40,9 +45,32 @@ public class MainActivity extends AppCompatActivity {
 
     public void onClickBtn1(View view) {
         new DownloadFileTask().execute("https://ntv.ifmo.ru/file/journal/1.pdf");
-        Toast toast = Toast.makeText(MainActivity.this,
-                "Btn1", Toast.LENGTH_SHORT);
-        toast.show();
+        writeExternalFile();
+    }
+
+    public void writeExternalFile() {
+
+
+        if (!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
+            Toast.makeText(MainActivity.this, "Доступ к внешнему хранилищу закрыт: " + Environment.getExternalStorageState(), Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        File path = getExternalFilesDir("AppDir");
+        if (path != null) {
+            path.mkdirs(); // Создаем каталог
+            File file = new File(path, "File1.txt");
+
+            try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
+                bw.write("Содержимое файла во внешнем хранилище");
+                Toast.makeText(MainActivity.this, "Файл записан: " + file.getAbsolutePath(), Toast.LENGTH_SHORT).show();
+            } catch (IOException e) {
+                Toast.makeText(this, "Ошибка записи файла: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                e.printStackTrace();
+            }
+        } else {
+            Toast.makeText(this, "Не удалось создать каталог", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private class DownloadFileTask extends AsyncTask<String, Void, String> {
@@ -78,6 +106,7 @@ public class MainActivity extends AppCompatActivity {
                     Log.e("DownloadFileTask", "Error closing streams", e);
                 }
             }
+
             return buf.toString();
         }
 
@@ -86,7 +115,11 @@ public class MainActivity extends AppCompatActivity {
             // Здесь вы можете обновить пользовательский интерфейс или обработать загруженные данные
             if (result != null) {
                 Toast toast = Toast.makeText(MainActivity.this,
-                        "Получил что то", Toast.LENGTH_SHORT);
+                        "Загружаю", Toast.LENGTH_SHORT);
+                toast.show();
+            } else {
+                Toast toast = Toast.makeText(MainActivity.this,
+                        "Нет такого журнала", Toast.LENGTH_SHORT);
                 toast.show();
             }
         }

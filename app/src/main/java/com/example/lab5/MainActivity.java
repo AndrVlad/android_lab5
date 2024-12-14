@@ -18,11 +18,13 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -34,8 +36,7 @@ import javax.net.ssl.HttpsURLConnection;
 
 public class MainActivity extends AppCompatActivity {
 
-    InputStream is = null;
-    File file;
+    File path;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,30 +46,24 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onClickBtn1(View view) {
-        new DownloadFileTask().execute("https://ntv.ifmo.ru/file/journal/1.pdf");
-        writeExternalFile();
+        EditText editText = (EditText) findViewById(R.id.editTextText);
+        String j_id = editText.getText().toString();
+        createDir();
+        String url = "https://ntv.ifmo.ru/file/journal/";
+        String journal_id = j_id+".pdf";
+        new DownloadFileTask().execute(url,journal_id);
     }
 
-    public void writeExternalFile() {
-
+    public void createDir() {
 
         if (!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
             Toast.makeText(MainActivity.this, "Доступ к внешнему хранилищу закрыт: " + Environment.getExternalStorageState(), Toast.LENGTH_SHORT).show();
             return;
         }
 
-        File path = getExternalFilesDir("AppDir");
+        path = getExternalFilesDir("AppDir");
         if (path != null) {
             path.mkdirs(); // Создаем каталог
-            file = new File(path, "File.pdf");
-
-            try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
-                bw.write("Содержимое файла во внешнем хранилище");
-                Toast.makeText(MainActivity.this, "Файл записан: " + file.getAbsolutePath(), Toast.LENGTH_SHORT).show();
-            } catch (IOException e) {
-                Toast.makeText(this, "Ошибка записи файла: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                e.printStackTrace();
-            }
         } else {
             Toast.makeText(this, "Не удалось создать каталог", Toast.LENGTH_SHORT).show();
         }
@@ -76,9 +71,9 @@ public class MainActivity extends AppCompatActivity {
 
     private class DownloadFileTask extends AsyncTask<String, Void, String> {
         @Override
-        protected String doInBackground(String... urls) {
+        protected String doInBackground(String... params) {
             StringBuilder buf = new StringBuilder();
-            String urlString = urls[0];
+            String urlString = params[0]+params[1];
             BufferedReader reader = null;
             InputStream stream = null;
             HttpsURLConnection connection = null;
@@ -89,12 +84,24 @@ public class MainActivity extends AppCompatActivity {
                 connection.setRequestMethod("GET");
                 connection.setReadTimeout(10000);
                 connection.connect();
-                stream = connection.getInputStream();
-                reader = new BufferedReader(new InputStreamReader(stream));
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    buf.append(line).append("\n");
+                if (connection.getResponseCode() == HttpsURLConnection.HTTP_OK) {
+                    stream = connection.getInputStream();
+                    String filename = "File" + params[1];
+                    File file = new File(path, filename);
+                    FileOutputStream fos = new FileOutputStream(file);
+
+                    byte[] buffer = new byte[4096];
+                    int bytesRead;
+
+                    // Чтение данных
+                    while ((bytesRead = stream.read(buffer)) != -1) {
+                        fos.write(buffer, 0, bytesRead);
+                    }
+                    fos.close();
+                } else {
+                    return "Ошибка скачивания: " + connection.getResponseCode();
                 }
+
             } catch (Exception e) {
                 Log.e("DownloadFileTask", "Error downloading file", e);
                 return null;
@@ -108,7 +115,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
 
-            return buf.toString();
+            return "Файл успешно сохранен";
         }
 
         @Override
@@ -116,7 +123,7 @@ public class MainActivity extends AppCompatActivity {
             // Здесь вы можете обновить пользовательский интерфейс или обработать загруженные данные
             if (result != null) {
                 Toast toast = Toast.makeText(MainActivity.this,
-                        "Загружаю", Toast.LENGTH_SHORT);
+                        "Файл загружен", Toast.LENGTH_SHORT);
                 toast.show();
             } else {
                 Toast toast = Toast.makeText(MainActivity.this,

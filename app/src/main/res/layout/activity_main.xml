@@ -25,7 +25,7 @@
         android:layout_marginTop="68dp"
         android:ems="10"
         android:inputType="text"
-        android:text="Введите номер журнала"
+        android:hint="Введите номер журнала"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -47,7 +47,8 @@
         android:layout_height="47dp"
         android:enabled="false"
         android:text="Удалить"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        tools:layout_editor_absoluteY="289dp" />
+        app:layout_constraintTop_toBottomOf="@+id/button2" />
 </androidx.constraintlayout.widget.ConstraintLayout>

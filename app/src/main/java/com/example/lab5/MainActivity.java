@@ -35,6 +35,7 @@ import javax.net.ssl.HttpsURLConnection;
 public class MainActivity extends AppCompatActivity {
 
     InputStream is = null;
+    File file;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
         File path = getExternalFilesDir("AppDir");
         if (path != null) {
             path.mkdirs(); // Создаем каталог
-            File file = new File(path, "File1.txt");
+            file = new File(path, "File.pdf");
 
             try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
                 bw.write("Содержимое файла во внешнем хранилище");

@@ -3,14 +3,17 @@ package com.example.lab5;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
 
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -37,21 +40,66 @@ import javax.net.ssl.HttpsURLConnection;
 public class MainActivity extends AppCompatActivity {
 
     File path;
-
+    String downloadedFilename = null;
+    Button btn2, btn3;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        btn2 = (Button) findViewById(R.id.button2);
+        btn3 = (Button) findViewById(R.id.button3);
+        createDir();
     }
 
     public void onClickBtn1(View view) {
+
+        btn2.setEnabled(false);
+        btn3.setEnabled(false);
         EditText editText = (EditText) findViewById(R.id.editTextText);
         String j_id = editText.getText().toString();
-        createDir();
         String url = "https://ntv.ifmo.ru/file/journal/";
         String journal_id = j_id+".pdf";
         new DownloadFileTask().execute(url,journal_id);
+    }
+
+    public void onClickBtn2(View view) {
+
+        String filepath = new File(path, downloadedFilename).getPath(); // Полный путь к файлу
+        File file = new File(filepath);
+        //Uri uri = Uri.fromFile(file); // Создаем Uri из файла
+        Uri uri = FileProvider.getUriForFile(this, getPackageName() + ".fileprovider", file);
+        // Определяем MIME-тип файла
+        String mime = "application/pdf"; // или другой соответствующий тип, например "application/vnd.openxmlformats-officedocument.wordprocessingml.document" для .docx
+
+        Intent intent = new Intent();
+        intent.setAction(Intent.ACTION_VIEW);
+        intent.setDataAndType(uri, mime);
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        Intent chosenIntent = Intent.createChooser(intent, "Открыть PDF");
+        startActivity(chosenIntent);
+        /*
+        if (intent.resolveActivity(getPackageManager()) != null) {
+            startActivity(intent); // Запускаем активность
+        } else {
+            Toast.makeText(this, "Нет приложения для открытия файла", Toast.LENGTH_SHORT).show();
+        } */
+    }
+
+    public void onClickBtn3(View view) {
+        String filepath = new File(path, downloadedFilename).getPath();
+        File file = new File(filepath);
+        if(file.delete()) {
+            Toast toast = Toast.makeText(MainActivity.this,
+                    "Файл "+downloadedFilename+" удален", Toast.LENGTH_SHORT);
+            toast.show();
+            btn2.setEnabled(false);
+            btn3.setEnabled(false);
+        } else {
+            Toast toast = Toast.makeText(MainActivity.this,
+                    "Ошибка при удалении файла "+downloadedFilename, Toast.LENGTH_SHORT);
+            toast.show();
+        };
+
     }
 
     public void createDir() {
@@ -70,9 +118,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private class DownloadFileTask extends AsyncTask<String, Void, String> {
+
         @Override
         protected String doInBackground(String... params) {
             StringBuilder buf = new StringBuilder();
+            String filename = "";
             String urlString = params[0]+params[1];
             BufferedReader reader = null;
             InputStream stream = null;
@@ -86,7 +136,7 @@ public class MainActivity extends AppCompatActivity {
                 connection.connect();
                 if (connection.getResponseCode() == HttpsURLConnection.HTTP_OK) {
                     stream = connection.getInputStream();
-                    String filename = "File" + params[1];
+                    filename = "File" + params[1];
                     File file = new File(path, filename);
                     FileOutputStream fos = new FileOutputStream(file);
 
@@ -98,13 +148,15 @@ public class MainActivity extends AppCompatActivity {
                         fos.write(buffer, 0, bytesRead);
                     }
                     fos.close();
-                } else {
-                    return "Ошибка скачивания: " + connection.getResponseCode();
+                    return filename;
+                } else if (connection.getResponseCode() == HttpsURLConnection.HTTP_NOT_FOUND) {
+                    return null;
                 }
 
             } catch (Exception e) {
                 Log.e("DownloadFileTask", "Error downloading file", e);
                 return null;
+
             } finally {
                 try {
                     if (reader != null) reader.close();
@@ -112,22 +164,26 @@ public class MainActivity extends AppCompatActivity {
                     if (connection != null) connection.disconnect();
                 } catch (IOException e) {
                     Log.e("DownloadFileTask", "Error closing streams", e);
+                    return null;
                 }
             }
 
-            return "Файл успешно сохранен";
+            return null;
         }
 
         @Override
         protected void onPostExecute(String result) {
-            // Здесь вы можете обновить пользовательский интерфейс или обработать загруженные данные
+
             if (result != null) {
                 Toast toast = Toast.makeText(MainActivity.this,
-                        "Файл загружен", Toast.LENGTH_SHORT);
+                        "Файл "+result+" сохранен", Toast.LENGTH_SHORT);
                 toast.show();
+                btn2.setEnabled(true);
+                btn3.setEnabled(true);
+                downloadedFilename = result;
             } else {
                 Toast toast = Toast.makeText(MainActivity.this,
-                        "Нет такого журнала", Toast.LENGTH_SHORT);
+                        "Журнала с таким номером нет", Toast.LENGTH_SHORT);
                 toast.show();
             }
         }

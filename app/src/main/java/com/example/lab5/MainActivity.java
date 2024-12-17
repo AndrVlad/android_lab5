@@ -5,16 +5,25 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 
+import android.app.ActionBar;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.PopupWindow;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.BufferedReader;
@@ -49,6 +58,34 @@ public class MainActivity extends AppCompatActivity {
         btn2 = (Button) findViewById(R.id.button2);
         btn3 = (Button) findViewById(R.id.button3);
         createDir();
+        showPopupWindow();
+
+    }
+
+    private void showPopupWindow() {
+        // Создание разметки для PopupWindow
+        View popupView = getLayoutInflater().inflate(R.layout.popup_view, null);
+
+        // Создание экземпляра PopupWindow
+        PopupWindow popupWindow = new PopupWindow(popupView,
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.WRAP_CONTENT);
+
+        // Установка анимации (опционально)
+        popupWindow.setAnimationStyle(android.R.style.Animation_Dialog);
+
+        // Убедитесь, что PopupWindow не будет фокусироваться на других элементах, пока оно открыто
+        popupWindow.setFocusable(true);
+        popupWindow.setOutsideTouchable(true);
+
+        btn2.post(new Runnable() {
+            public void run() {
+                popupWindow.showAtLocation(findViewById(android.R.id.content), Gravity.CENTER, 0, 0);
+            }
+        });
+        // Отображение PopupWindow в центре экрана
+
+
     }
 
     public void onClickBtn1(View view) {
@@ -60,6 +97,7 @@ public class MainActivity extends AppCompatActivity {
         String url = "https://ntv.ifmo.ru/file/journal/";
         String journal_id = j_id+".pdf";
         new DownloadFileTask().execute(url,journal_id);
+
     }
 
     public void onClickBtn2(View view) {

@@ -7,6 +7,7 @@ import androidx.core.content.FileProvider;
 
 import android.app.ActionBar;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
@@ -20,6 +21,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
@@ -51,18 +53,25 @@ public class MainActivity extends AppCompatActivity {
     File path;
     String downloadedFilename = null;
     Button btn2, btn3;
+    private SharedPreferences mSettings;
+    public static final String APP_PREFERENCES_POPUP = "popup_show";
+    public static final String settingsFile = "mysettings";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         btn2 = (Button) findViewById(R.id.button2);
         btn3 = (Button) findViewById(R.id.button3);
+        mSettings = getSharedPreferences(settingsFile, MainActivity.MODE_PRIVATE);
+        if (!(mSettings.contains(APP_PREFERENCES_POPUP))) {
+            showPopupWindow();
+        }
         createDir();
-        showPopupWindow();
 
     }
 
     private void showPopupWindow() {
+
         // Создание разметки для PopupWindow
         View popupView = getLayoutInflater().inflate(R.layout.popup_view, null);
 
@@ -77,6 +86,23 @@ public class MainActivity extends AppCompatActivity {
         // Убедитесь, что PopupWindow не будет фокусироваться на других элементах, пока оно открыто
         popupWindow.setFocusable(true);
         popupWindow.setOutsideTouchable(true);
+
+        Button acceptBtn = popupView.findViewById(R.id.button_pop);
+        final CheckBox cb = popupView.findViewById(R.id.checkBox1);
+
+        acceptBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                if(cb.isChecked()) {
+                    SharedPreferences.Editor editor = mSettings.edit();
+                    editor.putInt(APP_PREFERENCES_POPUP, 0);
+                    editor.apply();
+                }
+                popupWindow.dismiss();
+            }
+        });
+
 
         btn2.post(new Runnable() {
             public void run() {

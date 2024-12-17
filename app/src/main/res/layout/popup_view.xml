@@ -1,7 +1,8 @@
 <!-- res/layout/popup_window.xml -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#328C7272"
     android:orientation="vertical"
     android:padding="16dp">
 
@@ -13,9 +14,17 @@
         android:textColor="@android:color/black"
         android:textSize="18sp" />
 
-    <Button
-        android:id="@+id/close_button"
-        android:layout_width="wrap_content"
+    <CheckBox
+        android:id="@+id/checkBox1"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Закрыть" />
+        android:text="Больше не показывать" />
+
+    <Button
+        android:id="@+id/button_pop"
+        android:layout_width="291dp"
+        android:layout_height="wrap_content"
+        android:text="Ок"
+        android:textAlignment="center" />
+
 </LinearLayout>

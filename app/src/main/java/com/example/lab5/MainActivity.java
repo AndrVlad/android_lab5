@@ -80,10 +80,7 @@ public class MainActivity extends AppCompatActivity {
                 WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.WRAP_CONTENT);
 
-        // Установка анимации (опционально)
         popupWindow.setAnimationStyle(android.R.style.Animation_Dialog);
-
-        // Убедитесь, что PopupWindow не будет фокусироваться на других элементах, пока оно открыто
         popupWindow.setFocusable(true);
         popupWindow.setOutsideTouchable(true);
 
@@ -109,8 +106,6 @@ public class MainActivity extends AppCompatActivity {
                 popupWindow.showAtLocation(findViewById(android.R.id.content), Gravity.CENTER, 0, 0);
             }
         });
-        // Отображение PopupWindow в центре экрана
-
 
     }
 
@@ -130,7 +125,6 @@ public class MainActivity extends AppCompatActivity {
 
         String filepath = new File(path, downloadedFilename).getPath(); // Полный путь к файлу
         File file = new File(filepath);
-        //Uri uri = Uri.fromFile(file); // Создаем Uri из файла
         Uri uri = FileProvider.getUriForFile(this, getPackageName() + ".fileprovider", file);
         // Определяем MIME-тип файла
         String mime = "application/pdf"; // или другой соответствующий тип, например "application/vnd.openxmlformats-officedocument.wordprocessingml.document" для .docx
@@ -141,12 +135,6 @@ public class MainActivity extends AppCompatActivity {
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         Intent chosenIntent = Intent.createChooser(intent, "Открыть PDF");
         startActivity(chosenIntent);
-        /*
-        if (intent.resolveActivity(getPackageManager()) != null) {
-            startActivity(intent); // Запускаем активность
-        } else {
-            Toast.makeText(this, "Нет приложения для открытия файла", Toast.LENGTH_SHORT).show();
-        } */
     }
 
     public void onClickBtn3(View view) {
